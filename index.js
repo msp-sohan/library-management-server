@@ -107,48 +107,49 @@ async function run() {
 				return res.send({ message: 'An error occurred while borrowing the book.' });
 			}
 		})
+		// Delete Borrowed Book
+		app.delete("/borrowedBook/:id", async (req, res) => {
+			const id = req.params.id
+			const query = { _id: id }
+			const result = await borrowedBooksCollection.deleteOne(query)
+			if (result.deletedCount === 1) {
+				await allBooksCollection.updateOne(
+					{ _id: new ObjectId(bookId) },
+					{ $inc: { Quantity: 1 } }
+				);
+				return res.send({ message: 'Book returned Successfully.' });
+			} else {
+				return res.status(404).send({ message: 'Book not found in borrowed books.' });
+			}
+			// res.send(result)
+		})
 
 
-		// app.post('/borrowedBook', async (req, res) => {
-		// 	const { _id, userEmail } = req.body;
-		// 	console.log(_id, userEmail)
+		// app.delete('/borrowedBook/:id', async (req, res) => {
+		// 	const id = req.params.id;
 
 		// 	try {
-		// 		// Check if the user has already borrowed the book
-		// 		const query = { _id: _id, userEmail: userEmail }
-		// 		const existingBorrowedBook = await borrowedBooksCollection.findOne(query);
+		// 		// Remove the book from the borrowedBook collection
+		// 		const result = await borrowedBooksCollection.deleteOne({ _id: id });
 
-		// 		if (existingBorrowedBook) {
-		// 			console.log('error match')
-		// 			return res.status(400).json({ message: 'You have already borrowed this book.' });
-		// 		}
-
-		// 		// Find the book and check its quantity
-		// 		const book = await allBooksCollection.findOne({ _id });
-		// 		if (!book || book.Quantity <= 0) {
-		// 			return res.status(400).json({ message: 'This book is not available for borrowing.' });
-		// 		}
-
-		// 		// Insert a new borrowed book record
-		// 		const borrowedBookData = req.body
-
-		// 		const result = await borrowedBooksCollection.insertOne(borrowedBookData);
-
-		// 		if (result.insertedCount === 1) {
-		// 			// Decrease the book's quantity
+		// 		if (result.deletedCount === 1) {
+		// 			// Successfully removed from borrowedBook collection
+		// 			// Now, you can increase the book's quantity in the allBooks collection
 		// 			await allBooksCollection.updateOne(
-		// 				{ _id },
-		// 				{ $inc: { Quantity: -1 } }
+		// 				{ _id: new ObjectId(bookId) },
+		// 				{ $inc: { Quantity: 1 } }
 		// 			);
-		// 			return res.json({ message: 'Book borrowed successfully.' });
+
+		// 			return res.send({ message: 'Book returned successfully.' });
 		// 		} else {
-		// 			return res.status(500).json({ message: 'An error occurred while borrowing the book.' });
+		// 			return res.status(404).send({ message: 'Book not found in borrowed books.' });
 		// 		}
 		// 	} catch (error) {
 		// 		console.error(error);
-		// 		return res.status(500).json({ message: 'An error occurred while borrowing the book.' });
+		// 		return res.status(500).send({ message: 'An error occurred while returning the book.' });
 		// 	}
 		// });
+
 
 
 		// Send a ping to confirm a successful connection
