@@ -29,14 +29,18 @@ async function run() {
 		// await client.connect();
 		client.connect();
 
-		const categoryCollection = client
-			.db("LibraryDB")
-			.collection("categories");
+		const categoryCollection = client.db("LibraryDB").collection("categories");
+		const allBooksCollection = client.db("LibraryDB").collection("allBooks");
 
 		app.get("/categories", async (req, res) => {
 			const result = await categoryCollection.find().toArray();
 			res.send(result);
 		});
+
+		app.get("/allBooks", async (req, res) => {
+			const result = await allBooksCollection.find().toArray()
+			res.send(result)
+		})
 
 		// Send a ping to confirm a successful connection
 		await client.db("admin").command({ ping: 1 });
