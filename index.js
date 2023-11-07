@@ -113,11 +113,16 @@ async function run() {
 			const query = { _id: id }
 			const result = await borrowedBooksCollection.deleteOne(query)
 			if (result.deletedCount === 1) {
-				await allBooksCollection.updateOne(
-					{ _id: new ObjectId(bookId) },
-					{ $inc: { Quantity: 1 } }
-				);
-				return res.send({ message: 'Book returned Successfully.' });
+				const filter = { _id: new ObjectId(id) };
+				const updateBook = {
+					$inc: {
+						Quantity: 1
+					},
+				};
+				// Increase the book quantity
+				await allBooksCollection.updateOne(filter, updateBook);
+
+				return res.send({ message: 'Book Returned Successfully.' });
 			} else {
 				return res.status(404).send({ message: 'Book not found in borrowed books.' });
 			}
