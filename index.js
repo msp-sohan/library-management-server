@@ -1,20 +1,27 @@
 const express = require("express");
+const app = express();
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require('jsonwebtoken');
 const cookieParser = require("cookie-parser");
-require("dotenv").config();
-const app = express();
 const port = process.env.PORT || 5000;
+require("dotenv").config();
 
 // middleware
-app.use(cors({ origin: ['http://localhost:5173'], credentials: true }));
+app.use(cors({
+	origin: [
+		'http://localhost:5173',
+		'https://the-library-msp.netlify.app'
+	],
+	credentials: true
+}));
+
 app.use(express.json());
 app.use(cookieParser());
 
 // mongodb uri
-const uri = process.env.DB_URI;
-// const uri = 'mongodb://127.0.0.1:27017'
+// const uri = process.env.DB_URI;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.fjonof5.mongodb.net/?retryWrites=true&w=majority`
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -34,8 +41,7 @@ const verifyToken = (req, res, next) => {
 		if (err) {
 			return res.status(401).send({ message: 'Unauthorized Access' })
 		}
-
-		req.user = decoded;
+		req.decoded = decoded;
 		next();
 	})
 }
@@ -70,16 +76,17 @@ async function run() {
 		});
 
 		app.get("/allBooks", verifyToken, async (req, res) => {
-			console.log('email', req.query.email);
-			console.log("token owner info", req.user.email);
-
-			// if (req.user.email !== req.query.email) {
-			// 	return res.status(403).send({ message: 'Forbidden Access' })
-			// }
-
+			const decodedEmail = req.decoded.email
+			const queryEmail = req.query.email
+			// console.log(decodedEmail, queryEmail)
+			const categoryName = req.query.categoryName;
+			const bookId = req.query.id;
 			try {
-				const categoryName = req.query.categoryName;
-				const bookId = req.query.id;
+
+				if (decodedEmail !== queryEmail) {
+					return res.status(403).send({ message: 'Forbidden access' });
+				}
+
 				if (bookId) {
 					const query = { _id: new ObjectId(bookId) };
 					const result = await allBooksCollection.findOne(query);
@@ -100,11 +107,19 @@ async function run() {
 		});
 
 		// post new book to db
-		app.post("/allBooks", async (req, res) => {
-			const booksData = req.body
-			const result = await allBooksCollection.insertOne(booksData)
-			res.send(result)
-		})
+		app.post("/allBooks", verifyToken, async (req, res) => {
+			const booksData = req.body;
+			const decodedEmail = req.decoded.email
+			const { userEmail } = booksData;
+
+			if (decodedEmail === userEmail) {
+				const result = await allBooksCollection.insertOne(booksData);
+				return res.send(result);
+			} else {
+				return res.status(403).send({ message: 'Forbidden Access' });
+			}
+		});
+
 		// get borrow book
 		app.get('/borrowedBook', async (req, res) => {
 			const email = req.query.email
@@ -139,7 +154,6 @@ async function run() {
 				return res.send({ message: 'An error occurred while borrowing the book.' });
 			}
 		})
-
 
 		// Update Books
 		app.put('/allBooks/:id', async (req, res) => {
