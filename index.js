@@ -107,6 +107,26 @@ async function run() {
 				return res.send({ message: 'An error occurred while borrowing the book.' });
 			}
 		})
+		// Update Books
+		app.put('/allBooks/:id', async (req, res) => {
+			const id = req.params.id
+			console.log('update', id)
+			const bookData = req.body
+			console.log(bookData)
+			const filter = { _id: new ObjectId(id) }
+			const options = { upsert: true }
+			const updateBook = {
+				$set: {
+					BookName: bookData.BookName,
+					AuthorName: bookData.AuthorName,
+					Category: bookData.Category,
+					Ratings: bookData.Ratings,
+					BookImage: bookData.BookImage,
+				}
+			}
+			const result = await allBooksCollection.updateOne(filter, updateBook, options)
+			res.send(result)
+		})
 		// Delete Borrowed Book
 		app.delete("/borrowedBook/:id", async (req, res) => {
 			const id = req.params.id
@@ -121,12 +141,11 @@ async function run() {
 				};
 				// Increase the book quantity
 				await allBooksCollection.updateOne(filter, updateBook);
-
-				return res.send({ message: 'Book Returned Successfully.' });
+				res.send(result)
+				// return res.send({ message: 'Book Returned Successfully.' });
 			} else {
 				return res.status(404).send({ message: 'Book not found in borrowed books.' });
 			}
-			// res.send(result)
 		})
 
 
