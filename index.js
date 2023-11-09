@@ -96,12 +96,40 @@ async function run() {
 			res.send({ result, total });
 		});
 
+		app.get("/allCategoryBook", async (req, res) => {
+			try {
+				const categoryName = req.query.categoryName;
+
+				if (!categoryName) {
+					return res.status(400).send({ message: "Category name is required." });
+				}
+
+				const filter = { Category: categoryName };
+				const cursor = allBooksCollection.find(filter);
+				const result = await cursor.toArray();
+
+				res.send(result);
+			} catch (error) {
+				console.error(error);
+				return res.status(500).send("An error occurred while fetching data.");
+			}
+		});
+		app.get("/singleBook", async (req, res) => {
+			const filter = {};
+			const bookId = req.query.id;
+			if (bookId) {
+				filter._id = new ObjectId(bookId);
+			}
+			const cursor = allBooksCollection.find(filter);
+			const result = await cursor.toArray();
+			res.send(result);
+		});
+
 		// post new book to db
 		app.post("/allBooks", verifyToken, async (req, res) => {
 			const booksData = req.body;
 			const email = booksData.userEmail;
 			const decodedEmail = req.decoded.email;
-			console.log(email, decodedEmail);
 
 			if (decodedEmail !== email) {
 				return res.status(403).send({ message: "Forbidden access" });
@@ -157,9 +185,7 @@ async function run() {
 		// Update Books
 		app.put("/allBooks/:id", async (req, res) => {
 			const id = req.params.id;
-			console.log("update", id);
 			const bookData = req.body;
-			console.log(bookData);
 			const filter = { _id: new ObjectId(id) };
 			const options = { upsert: true };
 			const updateBook = {
@@ -178,7 +204,7 @@ async function run() {
 		// Delete Borrowed Book
 		app.delete("/borrowedBook/:id", async (req, res) => {
 			const id = req.params.id;
-			console.log(id);
+
 			const query = { _id: new ObjectId(id) };
 			const result = await borrowedBooksCollection.deleteOne(query);
 			if (result.deletedCount === 1) {
