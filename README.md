@@ -17,3 +17,11 @@ Explore The Library: [The Library](https://the-library-0.netlify.app/)
 -  **MongoDB:** NoSQL database for storing user and book data.
 -  **JSON Web Tokens (JWT):** Used for user authentication.
 -  **dotenv:** Module for loading environment variables from a .env file.
+
+<!-- ## Technologies Used
+
+-  **Node.js:** Server-side JavaScript runtime.
+-  **Express.js:** Web application framework for Node.js.
+-  **MongoDB:** NoSQL database for storing user and book data.
+-  **JSON Web Tokens (JWT):** Used for user authentication.
+-  **dotenv:** Module for loading environment variables from a .env file. -->
