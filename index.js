@@ -15,7 +15,7 @@ require("dotenv").config();
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://the-library-msp.netlify.app"],
+    origin: ["http://localhost:5173", "https://the-library-0.netlify.app", "https://the-library-hub.netlify.app"],
     credentials: true,
   })
 );
@@ -23,10 +23,6 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
-// Local Api = http://localhost:5000
-// Live Api = https://b8a11-server-side-msp-sohan.vercel.app
-
-// const uri = process.env.DB_URI;
 const uri = process.env.MONGODB_URI;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
